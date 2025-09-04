@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Triton Pathways
 
-## Getting Started
+An AI-powered course and club planner for UC San Diego students.  
+Currently **in active development** (MVP sprint: 17 days).
 
-First, run the development server:
+---
 
+## 🚧 Project Status
+
+This project is in progress as part of a **17-day MVP build plan**.  
+The goal: ship a working full-stack prototype by the end of the sprint.  
+
+**Current progress:**  
+- ✅ Next.js + TypeScript frontend scaffold  
+- 🚧 PostgreSQL + Prisma backend setup  
+- 🚧 AI integration with GPT-4o + LangChain  
+- 🚧 Clerk authentication & user profiles  
+- 🚧 Docker + AWS deployment pipeline  
+
+Daily progress is tracked in `docs/plan.md`.
+
+---
+
+## ⚡ Features (Planned for MVP)
+
+- **Course Scheduling** – drag-and-drop UCSD course planner  
+- **Club Discovery** – recommendations tailored to user schedules  
+- **Smart AI Suggestions** – GPT-4o powered academic/club balance advice  
+- **Secure Accounts** – login and persistence with Clerk + PostgreSQL  
+- **Cloud Deployment** – containerized with Docker, running on Vercel + AWS  
+
+---
+
+## 🛠️ Tech Stack
+
+**Frontend**: Next.js (App Router), React, TypeScript, TailwindCSS  
+**Backend**: FastAPI + Node.js API routes  
+**Database**: PostgreSQL + Prisma ORM  
+**AI/ML**: OpenAI GPT-4o, LangChain  
+**Infrastructure**: Docker, AWS (S3/EC2), Vercel  
+
+---
+
+## 🚀 Getting Started (Dev Mode)
+
+### Prerequisites
+- Node.js (v18+)  
+- PostgreSQL (local or Dockerized)  
+
+### Development
 ```bash
+git clone https://github.com/jumanzor/triton-pathways.git
+cd triton-pathways
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
+Copy `.env.example` → `.env.local` and configure:
+```bash
+DATABASE_URL=...
+OPENAI_API_KEY=...
+CLERK_SECRET_KEY=...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📌 Notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This README will expand as milestones are completed.  
+For now, Triton Pathways is a **work-in-progress MVP sprint**, targeted for completion in 17 days.  
+Stay tuned for updates as the project evolves!
