@@ -2,12 +2,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import CourseCard from '@/components/CourseCard'
 import { type Course } from '@/types'
-
-const MOCK: Course[] = [
-  { id: 'cse100', code: 'CSE 100', name: 'Advanced Data Structures', description: 'Trees, hashing, memory models.' },
-  { id: 'cse110', code: 'CSE 110', name: 'Software Engineering', description: 'Team-based software projects and process.' },
-  { id: 'cse158', code: 'CSE 158', name: 'Recommender Systems', description: 'Collaborative filtering, evaluation, ethics.' },
-]
+import { MOCK } from '@/lib/mock-data'
 
 export default function CoursesPage() {
   const [raw, setRaw] = useState('')
