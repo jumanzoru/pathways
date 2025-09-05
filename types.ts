@@ -1,12 +1,14 @@
 export type ID = string
 
+// types.ts (optional)
 export type Course = {
-  id: ID;
-  code: string;          // e.g., "CSE 110"
-  name: string;
-  description: string;
-  units?: number;        // optional for now; we’ll backfill from DB later
+  id: string
+  code: string
+  name: string
+  description: string
+  units?: number
 }
+
 
 export type Club = {
   id: ID;

@@ -1,0 +1,74 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Core models for the MVP ---
+
+model Course {
+  id          String            @id @default(cuid())
+  code        String            @unique
+  name        String
+  description String
+  units       Int               @default(4)
+  createdAt   DateTime          @default(now())
+  offerings   CourseOffering[]
+  prereqFor   Prerequisite[]    @relation("CoursePrereq")
+  requires    Prerequisite[]    @relation("CourseRequires")
+  workload    Workload?
+}
+
+model Club {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  tags        String[]
+  createdAt   DateTime @default(now())
+}
+
+model CourseOffering {
+  id       String  @id @default(cuid())
+  courseId String
+  year     Int
+  quarter  String   // 'Fall' | 'Winter' | 'Spring' | 'Summer'
+  course   Course  @relation(fields: [courseId], references: [id])
+
+  @@index([courseId, year, quarter])
+}
+
+model Prerequisite {
+  id         String @id @default(cuid())
+  courseId   String
+  requiresId String
+  course     Course @relation("CoursePrereq",  fields: [courseId],   references: [id])
+  requires   Course @relation("CourseRequires", fields: [requiresId], references: [id])
+}
+
+model Workload {
+  courseId String @id
+  weight   Int    // 1..5
+  course   Course @relation(fields: [courseId], references: [id])
+}
+
+// (Optional, for planner & GEs later; ok to keep now)
+model GECategory {
+  id        String  @id @default(cuid())
+  name      String
+  unitsReq  Int
+  isHardReq Boolean @default(false)
+}
+
+model StudentProfile {
+  id                String   @id @default(cuid())
+  unitsPerQuarter   Int
+  quartersRemaining Int
+  interests         String[]
+  geUnitsDone       Int      @default(0)
+  writingSatisfied  Boolean  @default(false)
+  completedIds      String[] @default([]) // MVP simplification
+}
