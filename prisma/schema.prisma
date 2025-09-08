@@ -25,7 +25,7 @@ model Course {
 
 model Club {
   id          String   @id @default(cuid())
-  name        String
+  name        String   @unique        // ✅ needed for upsert({ where: { name } })
   description String
   tags        String[]
   createdAt   DateTime @default(now())
@@ -36,9 +36,10 @@ model CourseOffering {
   courseId String
   year     Int
   quarter  String   // 'Fall' | 'Winter' | 'Spring' | 'Summer'
-  course   Course  @relation(fields: [courseId], references: [id])
+  course   Course   @relation(fields: [courseId], references: [id])
 
   @@index([courseId, year, quarter])
+  @@unique([courseId, year, quarter])   // ✅ enables where: { courseId_year_quarter: {...} }
 }
 
 model Prerequisite {
@@ -47,7 +48,10 @@ model Prerequisite {
   requiresId String
   course     Course @relation("CoursePrereq",  fields: [courseId],   references: [id])
   requires   Course @relation("CourseRequires", fields: [requiresId], references: [id])
+
+  @@unique([courseId, requiresId])      // ✅ enables where: { courseId_requiresId: {...} }
 }
+
 
 model Workload {
   courseId String @id
