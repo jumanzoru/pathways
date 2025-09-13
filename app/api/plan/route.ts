@@ -1,80 +1,56 @@
 import { NextResponse } from 'next/server'
-import { z } from 'zod'
-import { plan, type Quarter, type PlanInput } from '@/lib/planner'
 import { prisma } from '@/lib/prisma'
+import { plan } from '@/lib/planner'
+import { PlanInputServer } from '@/lib/schemas'
 
 export const runtime = 'nodejs'
-
-// Accept IDs or course codes for convenience
-const bodySchema = z.object({
-  // Either of these can be provided; we canonicalize to IDs
-  completedIds: z.array(z.string()).optional(),
-  completedCodes: z.array(z.string()).optional(),
-  targetIds: z.union([z.literal('ALL'), z.array(z.string())]).optional(),
-  targetCodes: z.array(z.string()).optional(),
-
-  startYear: z.number().int(),
-  startQuarter: z.enum(['Fall','Winter','Spring','Summer'] as [Quarter, Quarter, Quarter, Quarter]),
-  unitsPerQuarter: z.number().int().min(8).max(20),
-  quartersRemaining: z.number().int().min(1).max(20),
-
-  geUnitsDone: z.number().int().min(0).default(0),
-  writingSatisfied: z.boolean().default(false),
-})
 
 export async function POST(req: Request) {
   try {
     const raw = await req.json()
-    const data = bodySchema.parse(raw)
 
-    // Canonicalize completed to IDs
-    const completedIds = await toIds(data.completedIds ?? [], data.completedCodes ?? [])
+    // 1) Validate & normalize with shared server schema
+    const parsed = PlanInputServer.parse(raw)
 
-    // Canonicalize target to IDs (or ALL)
-    let targetIds: PlanInput['targetIds'] = 'ALL'
-    if (data.targetCodes || data.targetIds) {
-      targetIds = data.targetIds ?? (await codesToIds(data.targetCodes ?? []))
+    // 2) Map completedCodes -> IDs and merge with any provided completedIds
+    const codeRows = parsed.completedCodes.length
+      ? await prisma.course.findMany({
+          where: { code: { in: parsed.completedCodes.map(c => c.toUpperCase().trim()) } },
+          select: { id: true },
+        })
+      : []
+    const completedIds = [...parsed.completedIds, ...codeRows.map(r => r.id)]
+
+    // 3) Resolve target set
+    //    Prefer raw.targetCodes if provided; otherwise use parsed.targetIds (can be 'ALL' or string[])
+    let targetIds: 'ALL' | string[] = parsed.targetIds
+    const targetCodes: string[] | undefined = Array.isArray((raw as any)?.targetCodes)
+      ? (raw as any).targetCodes
+      : undefined
+
+    if (targetCodes && targetCodes.length) {
+      const targets = await prisma.course.findMany({
+        where: { code: { in: targetCodes.map(c => c.toUpperCase().trim()) } },
+        select: { id: true },
+      })
+      targetIds = targets.map(t => t.id)
     }
 
-    const input: PlanInput = {
+    // 4) Call planner
+    const res = await plan({
       completedIds,
       targetIds,
-      startYear: data.startYear,
-      startQuarter: data.startQuarter,
-      unitsPerQuarter: data.unitsPerQuarter,
-      quartersRemaining: data.quartersRemaining,
-      geUnitsDone: data.geUnitsDone,
-      writingSatisfied: data.writingSatisfied,
-    }
+      startYear: parsed.startYear,
+      startQuarter: parsed.startQuarter,
+      unitsPerQuarter: parsed.unitsPerQuarter,
+      quartersRemaining: parsed.quartersRemaining,
+      geUnitsDone: parsed.geUnitsDone,
+      writingSatisfied: parsed.writingSatisfied,
+    })
 
-    const res = await plan(input)
     return NextResponse.json(res)
   } catch (err: any) {
     const msg = err?.message || 'Invalid request'
     return NextResponse.json({ error: msg }, { status: 400 })
   }
-}
-
-async function toIds(ids: string[], codes: string[]) {
-  if (!codes.length) return ids
-  const rows = await prisma.course.findMany({
-    where: { code: { in: codes } },
-    select: { id: true, code: true }
-  })
-  const found = new Map(rows.map(r => [r.code, r.id]))
-  const missing = codes.filter(c => !found.has(c))
-  if (missing.length) {
-    // Not fatal; we’ll just ignore missing codes and let the planner skip them.
-    // You could also throw here if you want strictness.
-  }
-  return [...ids, ...rows.map(r => r.id)]
-}
-
-async function codesToIds(codes: string[]) {
-  if (!codes.length) return []
-  const rows = await prisma.course.findMany({
-    where: { code: { in: codes } },
-    select: { id: true }
-  })
-  return rows.map(r => r.id)
 }
